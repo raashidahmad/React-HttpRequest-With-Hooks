@@ -1,32 +1,15 @@
-import { useEffect, useState } from "react";
 import { Places } from "./Places";
 import { ErrorPage } from "./ErrorPage";
-import { sortPlacesByDistance } from "../loc";
 import { fetchAvailablePlaces } from "../helpers/http-helper";
+import { useFetch } from "../hooks/useFetch";
 
 
 export const AvailablePlaces = ({ onSelectPlace }: any) => {
-  const [availablePlaces, setAvailablePlaces] = useState([]);
-  const [error, setError] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const fetchPlaces = async() => {
-        try {
-            const places: any = await fetchAvailablePlaces();
-            navigator.geolocation.getCurrentPosition((position) => {
-                const sortedPlaces: any = sortPlacesByDistance(places, position.coords.latitude, position.coords.longitude);
-                setAvailablePlaces(sortedPlaces);
-                setIsLoading(false);
-            });
-        } catch (error: any) {
-            setError({message: error.message || 'something went wrong'});
-            setIsLoading(false);
-        }
-        
-    }
-    fetchPlaces();
-  }, []);
+  const {
+    fetchedData: availablePlaces,
+    isLoading,
+    error
+  } = useFetch(fetchAvailablePlaces);
 
   if (error) {
     return <ErrorPage title="Error" message={error.message} />

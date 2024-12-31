@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback } from 'react';
 
 import logoImg from './assets/logo.png';
 import Modal from './components/Modal';
@@ -7,21 +7,20 @@ import { Places } from './components/Places';
 import { AvailablePlaces } from './components/AvailablePlaces';
 import { fetchUserPlaces, updatePlaces } from './helpers/http-helper';
 import { ErrorPage } from './components/ErrorPage';
+import { useFetch } from './hooks/useFetch';
 
 const App = () => {
   const selectedPlace = useRef<any>();
-  const [userPlaces, setUserPlaces] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [isUserPlaceLoading, setUserPlaceLoading] = useState<boolean>(false);
-  const [errorUpdatingPlaces, setErrorUpdatingPlaces] = useState<any>(null);
 
-  useEffect(() => {
-    const loadUserPlaces = async () => {
-      const savedPlaces = await fetchUserPlaces();
-      setUserPlaces(savedPlaces);
-    }
-    loadUserPlaces();
-  }, []);
+  const { 
+    isLoading: isUserPlaceLoading, 
+    setIsLoading: setUserPlaceLoading,
+    error: errorUpdatingPlaces, 
+    setError: setErrorUpdatingPlaces,
+    fetchedData: userPlaces,
+    setFetchedData: setUserPlaces
+  } = useFetch(fetchUserPlaces);
 
   function handleStartRemovePlace(place: any) {
     setModalIsOpen(true);
@@ -56,7 +55,7 @@ const App = () => {
   }
 
   const handleRemovePlace = useCallback(async function handleRemovePlace() {
-    setUserPlaces((prevPickedPlaces) =>
+    setUserPlaces((prevPickedPlaces: any[]) =>
       prevPickedPlaces.filter((place: any) => place.id !== selectedPlace.current.id)
     );
 
@@ -79,7 +78,9 @@ const App = () => {
 
   return (
     <>
-      <Modal open={errorUpdatingPlaces} onClose={handleError}>
+      <Modal 
+        open={errorUpdatingPlaces} onClose={handleError}
+        >
         {errorUpdatingPlaces &&  <ErrorPage 
           title="Update Error" 
           message={errorUpdatingPlaces.message} 
